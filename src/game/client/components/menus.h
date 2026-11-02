@@ -1016,6 +1016,7 @@ private:
 	void RenderSettingsBestClientVisuals(CUIRect MainView);
 	void RenderSettingsBestClientGameplay(CUIRect MainView);
 	void RenderSettingsBestClientOthers(CUIRect MainView);
+	void RenderSettingsBestClientAntiCheat(CUIRect MainView);
 	// bestclient
 	void RenderSettingsBestClientFun(CUIRect MainView);
 	// bestclient
