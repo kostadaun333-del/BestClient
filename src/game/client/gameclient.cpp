@@ -205,6 +205,7 @@ void CGameClient::OnConsoleInit()
 					      &m_ShowPoints, // bestclient
 					      &m_ClientIndicator, // bestclient
 					      &m_VoiceChat, // bestclient
+							      &m_AntiCheat, // bestclient
 					      &m_Hud,
 					      &m_BestClient, // bestclient
 					      &m_BcConfigPresets, // bestclient
@@ -6152,6 +6153,8 @@ const char *CGameClient::GetComponentName(const CComponent *pComp) const
 		return "Motd";
 	if(pComp == &m_AdminPanel)
 		return "AdminPanel";
+		if(pComp == &m_AntiCheat)
+		return "AntiCheat";
 	if(pComp == &m_AspectRatio)
 		return "AspectRatio";
 	if(pComp == &m_Menus)
