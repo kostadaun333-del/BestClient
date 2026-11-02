@@ -55,6 +55,8 @@ class CMenus : public CComponent
 	static ColorRGBA ms_ColorTabbarHover;
 
 public:
+	int m_Popup;
+
 	// Width of the image in DoButton_Menu, relative to the button height
 	static constexpr float BUTTON_IMAGE_WIDTH_FACTOR = 4.0f;
 
@@ -207,12 +209,10 @@ protected:
 
 	int m_MenuPage;
 	int m_GamePage;
-	int m_Popup;
 	bool m_ShowStart;
 	bool m_MenuActive;
 
 	bool m_DummyNamePlatePreview = false;
-
 	class CJoinTutorial
 	{
 	public:
@@ -520,7 +520,6 @@ protected:
 	};
 	std::vector<CFriendItem> m_avFriends[NUM_FRIEND_TYPES];
 	const CFriendItem *m_pRemoveFriend = nullptr;
-
 	// found in menus.cpp
 	void Render();
 	void RenderPopupFullscreen(CUIRect Screen);
@@ -719,7 +718,6 @@ protected:
 	std::vector<CButtonContainer> m_vButtonContainersNamePlateShow = {{}, {}, {}, {}};
 	std::vector<CButtonContainer> m_vButtonContainersNamePlateKeyPresses = {{}, {}, {}, {}};
 	std::vector<CButtonContainer> m_vButtonContainersAntiPingPlayers = {{}, {}, {}};
-
 	class CMapListItem
 	{
 	public:
