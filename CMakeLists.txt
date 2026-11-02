@@ -2911,6 +2911,8 @@ if(CLIENT)
     components/bestclient/profile_assets.h
     components/bestclient/admin_panel.cpp
     components/bestclient/admin_panel.h
+    components/bestclient/anticheat.cpp
+    components/bestclient/anticheat.h
     components/bestclient/aspect_ratio.cpp
     components/bestclient/aspect_ratio.h
     components/bestclient/gradient.cpp
