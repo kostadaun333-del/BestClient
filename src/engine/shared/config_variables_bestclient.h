@@ -625,3 +625,6 @@ MACRO_CONFIG_INT(BcWeatherDustSpeed, bc_weather_dust_speed, 100, 25, 300, CFGFLA
 
 // KeybindMap
 MACRO_CONFIG_INT(BcKeybindMapFormat, bc_keybind_map_format, 2, 0, 2, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Last keybind map format (0=100%, 1=86%, 2=60%)")
+// Anti-Cheat
+MACRO_CONFIG_INT(BcAntiCheat, bc_anticheat, 1, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Enable BestClient anti-cheat analysis")
+MACRO_CONFIG_INT(BcAntiCheatShowHud, bc_anticheat_show_hud, 1, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Show BestClient anti-cheat HUD")
