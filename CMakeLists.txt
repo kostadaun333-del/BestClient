@@ -175,7 +175,7 @@ option(ANTIBOT "Enable support for a dynamic anticheat library (not provided, se
 option(HEADLESS_CLIENT "Build the client without graphics" OFF)
 option(CLIENT "Compile client" ON)
 option(SERVER "Compile server" ON)
-option(TOOLS "Compile tools" ON)
+option(TOOLS "Compile tools" OFF)
 option(DOWNLOAD_GTEST "Download and compile GTest" ${AUTO_DEPENDENCIES_DEFAULT})
 option(STEAM "Build the Steam release version" ON)
 option(DISCORD "Enable Discord rich presence support" ON) # bestclient
