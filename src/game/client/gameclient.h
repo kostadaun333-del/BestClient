@@ -31,6 +31,7 @@
 #include "components/background.h"
 #include "components/bestclient/3d_particles.h" // bestclient
 #include "components/bestclient/admin_panel.h" // bestclient
+#include "components/bestclient/anticheat.h" // bestclient
 #include "components/bestclient/aspect_ratio.h" // bestclient
 #include "components/bestclient/bestclient.h" // bestclient
 #include "components/bestclient/browser_utils.h" // bestclient
@@ -243,6 +244,7 @@ public:
 	CClientIndicator m_ClientIndicator; // bestclient
 	CVoiceChat m_VoiceChat; // bestclient
 	CAdminPanel m_AdminPanel; // bestclient
+	CAntiCheat m_AntiCheat; // bestclient
 	CAspectRatio m_AspectRatio; // bestclient
 	C3DParticles m_3DParticles; // bestclient
 	CJellyTee m_JellyTee; // bestclient
