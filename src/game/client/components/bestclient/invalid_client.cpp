@@ -851,73 +851,106 @@ void CInvalidClient::RenderFreezeWarning()
 		return Tile == TILE_SOLID || Tile == TILE_NOHOOK || IsFreeze(Tile);
 	};
 
-	// Only the tiles that the tee would really touch light up - not the whole
-	// freeze area around it. Up to three tiles (left foot, centre, right foot).
-	vec2 aThreats[4];
+	// Highlight only the tiles the tee can actually reach: the first solid tile
+	// under each foot, the tiles around the body and the first freeze tile along
+	// the predicted trajectory. Not the whole freeze area around the player.
+	vec2 aThreats[8];
 	int NumThreats = 0;
-	auto AddThreat = [&](float X, float Y) {
+	float Closest = 1.0e9f;
+
+	auto AddThreat = [&](float X, float Y, float Dist) {
 		const vec2 Center(std::floor(X / 32.0f) * 32.0f + 16.0f, std::floor(Y / 32.0f) * 32.0f + 16.0f);
 		for(int i = 0; i < NumThreats; i++)
+		{
 			if(distance(aThreats[i], Center) < 10.0f)
+			{
+				Closest = std::min(Closest, Dist);
 				return;
+			}
+		}
 		if(NumThreats < (int)std::size(aThreats))
+		{
 			aThreats[NumThreats++] = Center;
+			Closest = std::min(Closest, Dist);
+		}
 	};
 
-	// Feet probes: the tee collision radius is ~14 units, so three samples
-	// approximate the actual footprint instead of a single centre point.
-	// Returns 2 when a freeze tile is touched, 1 when any other solid tile is
-	// touched and 0 when the path is still clear.
-	static const float s_aFeetOffsets[] = {-9.0f, 0.0f, 9.0f};
-	auto SampleFeet = [&](vec2 Body) {
-		int Result = 0;
-		for(float OffX : s_aFeetOffsets)
+	static const float s_aFootOffsets[] = {-9.0f, 0.0f, 9.0f};
+
+	// 1) Straight down: the first solid tile under each foot. If it is freeze,
+	// this is exactly the block the tee would land on.
+	for(float OffX : s_aFootOffsets)
+	{
+		const float Fx = Pos.x + OffX;
+		const float FeetY = Pos.y - 13.0f;
+		const int StartTileY = (int)std::floor(FeetY / 32.0f);
+		const float Tx = std::floor(Fx / 32.0f) * 32.0f + 16.0f;
+		for(int i = 0; i < 12; i++)
 		{
-			const float Fx = Body.x + OffX;
-			const float Fy = Body.y - 13.0f;
-			const int Tile = pCollision->GetTile(round_to_int(Fx), round_to_int(Fy));
+			const float Ty = (float)(StartTileY - i) * 32.0f + 16.0f;
+			const int Tile = pCollision->GetTile(round_to_int(Tx), round_to_int(Ty));
 			if(IsFreeze(Tile))
 			{
-				AddThreat(Fx, Fy);
-				Result = 2;
+				AddThreat(Tx, Ty, distance(vec2(Tx, Ty), Pos));
+				break;
 			}
-			else if(IsBlocking(Tile))
-			{
-				Result = std::max(Result, 1);
-			}
+			if(IsBlocking(Tile))
+				break;
 		}
-		return Result;
+	}
+
+	// 2) Tiles touching the body (up, down, left, right). This is what makes
+	// the warning appear when you simply stand next to a freeze block.
+	static const vec2 s_aAdjacent[] = {vec2(34.0f, 0.0f), vec2(-34.0f, 0.0f), vec2(0.0f, 34.0f), vec2(0.0f, -34.0f)};
+	for(const vec2 &Off : s_aAdjacent)
+	{
+		const float Tx = Pos.x + Off.x;
+		const float Ty = Pos.y - 4.0f + Off.y;
+		if(IsFreeze(pCollision->GetTile(round_to_int(Tx), round_to_int(Ty))))
+			AddThreat(Tx, Ty, 34.0f);
+	}
+
+	// 3) Body probes along the predicted path: feet catch falling onto ice,
+	// body and head catch running into a freeze wall. Solid floors are ignored,
+	// otherwise the tee would be "blocked" by the ground it walks on.
+	auto SampleBody = [&](vec2 Body) {
+		bool Wall = false;
+		for(float OffX : s_aFootOffsets)
+		{
+			const float Fx = Body.x + OffX;
+			int Tile = pCollision->GetTile(round_to_int(Fx), round_to_int(Body.y - 13.0f));
+			if(IsFreeze(Tile))
+				AddThreat(Fx, Body.y - 13.0f, distance(vec2(Fx, Body.y), Pos));
+			Tile = pCollision->GetTile(round_to_int(Fx), round_to_int(Body.y));
+			if(IsFreeze(Tile))
+				AddThreat(Fx, Body.y, distance(vec2(Fx, Body.y), Pos));
+			else if(IsBlocking(Tile))
+				Wall = true;
+			Tile = pCollision->GetTile(round_to_int(Fx), round_to_int(Body.y + 10.0f));
+			if(IsFreeze(Tile))
+				AddThreat(Fx, Body.y + 10.0f, distance(vec2(Fx, Body.y), Pos));
+		}
+		return Wall;
 	};
 
-	// Standing on (or hovering just above) a freeze tile.
-	float Immediacy = 0.0f;
-	if(SampleFeet(Pos) == 2)
-		Immediacy = 1.0f;
-	if(NumThreats == 0 && SampleFeet(Pos + vec2(0.0f, -12.0f)) == 2)
-		Immediacy = 0.9f;
-
-	// Look ahead along the actual ballistic trajectory (velocity + gravity).
-	// This is purely visual: it never changes input or movement.
+	// 4) Ballistic lookahead (velocity + gravity), purely visual.
 	const vec2 Gravity(0.0f, 0.5f);
-	if(NumThreats == 0)
+	for(int Step = 1; Step <= 48; Step++)
 	{
-		for(int Step = 1; Step <= 48; Step++)
-		{
-			const float S = (float)Step;
-			const vec2 P = Pos + Vel * S + Gravity * (0.5f * S * S);
-			if(distance(P, Pos) > Range)
-				break;
-			const int Hit = SampleFeet(P);
-			if(Hit == 0)
-				continue;
-			if(Hit == 2)
-				Immediacy = std::max(Immediacy, Clamp01(1.0f - S / 30.0f));
+		const float S = (float)Step;
+		const vec2 P = Pos + Vel * S + Gravity * (0.5f * S * S);
+		if(distance(P, Pos) > Range)
 			break;
-		}
+		if(SampleBody(P))
+			break;
+		if(NumThreats > 0)
+			break;
 	}
 
 	if(NumThreats == 0)
 		return;
+
+	const float Immediacy = Clamp01(1.0f - Closest / std::max(Range, 1.0f));
 
 	const float T = Client()->GlobalTime();
 	const float Pulse = 0.5f + 0.5f * std::sin(T * 8.0f);
@@ -931,13 +964,13 @@ void CInvalidClient::RenderFreezeWarning()
 	Graphics()->QuadsSetSubset(0.0f, 0.0f, 1.0f, 1.0f);
 	for(int i = 0; i < NumThreats; i++)
 	{
-		const float Size = 62.0f + Pulse * 10.0f;
-		Graphics()->SetColor(1.0f, 0.16f, 0.12f, (0.22f + Pulse * 0.24f) * Strength);
+		const float Size = 66.0f + Pulse * 12.0f;
+		Graphics()->SetColor(1.0f, 0.16f, 0.12f, (0.30f + Pulse * 0.26f) * Strength);
 		IGraphics::CQuadItem Glow(aThreats[i].x - Size * 0.5f, aThreats[i].y - Size * 0.5f, Size, Size);
 		Graphics()->QuadsDraw(&Glow, 1);
 
-		const float CoreSize = 36.0f + Pulse * 4.0f;
-		Graphics()->SetColor(1.0f, 0.48f, 0.22f, (0.34f + Pulse * 0.30f) * Strength);
+		const float CoreSize = 40.0f + Pulse * 5.0f;
+		Graphics()->SetColor(1.0f, 0.48f, 0.22f, (0.45f + Pulse * 0.32f) * Strength);
 		IGraphics::CQuadItem Core(aThreats[i].x - CoreSize * 0.5f, aThreats[i].y - CoreSize * 0.5f, CoreSize, CoreSize);
 		Graphics()->QuadsDraw(&Core, 1);
 	}
