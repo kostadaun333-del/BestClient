@@ -60,7 +60,7 @@ static float SdfEllipse(vec2 P, vec2 C, vec2 R)
 
 static float SdfRoundedBox(vec2 P, vec2 C, vec2 B, float R)
 {
-	const vec2 Q = abs(P - C) - B + vec2(R, R);
+	const vec2 Q(std::abs(P.x - C.x) - B.x + R, std::abs(P.y - C.y) - B.y + R);
 	return length(vec2(std::max(Q.x, 0.0f), std::max(Q.y, 0.0f))) + std::min(std::max(Q.x, Q.y), 0.0f) - R;
 }
 
@@ -434,7 +434,7 @@ IGraphics::CTextureHandle CInvalidClient::MakeCigaretteTexture()
 				const float Shade = 1.0f - std::abs(P.y - 0.60f) * 1.15f;
 				vec3 Paper = vec3(0.97f, 0.95f, 0.90f) * (0.80f + 0.26f * Clamp01(Shade));
 				// faint paper fibres
-				Paper += vec3(0.02f) * (Hash2(X, Y / 3) - 0.5f);
+				Paper += vec3(0.02f, 0.02f, 0.02f) * (Hash2(X, Y / 3) - 0.5f);
 				Color = Mix(Color, Paper, PaperMask);
 				Alpha = std::max(Alpha, PaperMask);
 			}
