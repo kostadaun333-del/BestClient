@@ -1027,8 +1027,6 @@ private:
 	void RenderSettingsInvalidChat(CUIRect MainView);
 	void RenderSettingsInvalidWeather(CUIRect MainView);
 	void RenderSettingsInvalidMisc(CUIRect MainView);
-	void SetInvalidSettingsTab(int Tab);
-	int GetInvalidSettingsTab() const;
 	// bestclient
 	void RenderSettingsBestClientFun(CUIRect MainView);
 	// bestclient
@@ -1170,6 +1168,8 @@ public:
 	int GetBestClientSettingsTab() const;
 	void SetTClientSettingsTab(int Tab);
 	int GetTClientSettingsTab() const;
+	void SetInvalidSettingsTab(int Tab);
+	int GetInvalidSettingsTab() const;
 	void RenderSettingsNavNewStyle(CUIRect &TabBar);
 	void RenderSettingsPage(CUIRect MainView);
 	void RenderSettingsPageAt(CUIRect MainView, int SettingsPage, int TClientTab, int BestClientTab, int InvalidTab = 0);
