@@ -950,6 +950,9 @@ void CChat::OnMessage(int MsgType, void *pRawMsg)
 		*/
 
 		AddLine(pMsg->m_ClientId, pMsg->m_Team, pMsg->m_pMessage);
+		// bestclient: Invalid auto reply
+		GameClient()->m_InvalidClient.ProcessIncoming(pMsg->m_ClientId, pMsg->m_pMessage);
+		// bestclient
 
 		if(Client()->State() != IClient::STATE_DEMOPLAYBACK &&
 			pMsg->m_ClientId == SERVER_MSG)
@@ -2041,6 +2044,14 @@ void CChat::EnsureCoherentWidth() const
 
 void CChat::SendChat(int Team, const char *pLine)
 {
+	// bestclient: Invalid chat helpers
+	char aInvalidLine[MAX_CHAT_LENGTH];
+	str_copy(aInvalidLine, pLine, sizeof(aInvalidLine));
+	if(GameClient()->m_InvalidClient.ProcessOutgoing(aInvalidLine, sizeof(aInvalidLine)))
+		return;
+	pLine = aInvalidLine;
+	// bestclient
+
 	// don't send empty messages
 	if(*str_utf8_skip_whitespaces(pLine) == '\0')
 		return;

@@ -1,0 +1,82 @@
+name: build-invalid
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - invalid-settings
+
+concurrency:
+  group: build-invalid-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            ninja-build pkg-config libsdl2-dev libcurl4-openssl-dev \
+            libfreetype-dev libharfbuzz-dev libssl-dev libpng-dev \
+            libglew-dev libgl1-mesa-dev libogg-dev libopus-dev \
+            libopusfile-dev libwavpack-dev libsqlite3-dev libx11-dev \
+            libxrandr-dev libxi-dev libxfixes-dev libxkbcommon-dev \
+            libwayland-dev
+      - name: Configure
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCLIENT_EXECUTABLE=InvalidClient \
+            -DCLIENT=ON -DSERVER=OFF -DTOOLS=OFF \
+            -DVULKAN=OFF -DVIDEORECORDER=OFF -DDISCORD=OFF \
+            -DSTEAM=OFF -DUPNP=OFF -DAUTOUPDATE=OFF \
+            -DDOWNLOAD_GTEST=OFF -DDEV=OFF
+      - name: Build
+        run: cmake --build build --target game-client -j 4
+      - name: Package
+        run: |
+          mkdir -p dist
+          cp build/InvalidClient dist/
+          cp -r build/data dist/data
+          cp build/*.so* dist/ 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: invalid-client-linux
+          path: dist
+          if-no-files-found: error
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Configure
+        run: >
+          cmake -S . -B build -G "Visual Studio 17 2022" -A x64
+          -DCLIENT_EXECUTABLE=InvalidClient
+          -DCLIENT=ON -DSERVER=OFF -DTOOLS=OFF
+          -DVULKAN=OFF -DVIDEORECORDER=OFF -DDISCORD=OFF
+          -DSTEAM=OFF -DUPNP=OFF -DAUTOUPDATE=OFF
+          -DDOWNLOAD_GTEST=OFF -DDEV=OFF
+      - name: Build
+        run: cmake --build build --config Release --target game-client -- /m:4
+      - name: Package
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Copy-Item build/Release/InvalidClient.exe dist/
+          Copy-Item build/data dist/data -Recurse
+          Get-ChildItem build -Filter *.dll | Copy-Item -Destination dist -ErrorAction SilentlyContinue
+          Get-ChildItem build/Release -Filter *.dll | Copy-Item -Destination dist -ErrorAction SilentlyContinue
+          Get-ChildItem dist | Format-Table Name, Length
+      - uses: actions/upload-artifact@v4
+        with:
+          name: invalid-client-windows
+          path: dist
+          if-no-files-found: error

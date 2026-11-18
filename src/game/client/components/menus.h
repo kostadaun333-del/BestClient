@@ -836,6 +836,7 @@ public:
 		SETTINGS_ASSETS,
 		SETTINGS_TCLIENT, // TClient
 		SETTINGS_BESTCLIENT, // bestclient
+		SETTINGS_INVALID, // bestclient
 		SETTINGS_PROFILES, // TClient
 		SETTINGS_CONFIGS, // TClient
 		SETTINGS_CREDITS,
@@ -1019,6 +1020,15 @@ private:
 	void RenderSettingsBestClientVisuals(CUIRect MainView);
 	void RenderSettingsBestClientGameplay(CUIRect MainView);
 	void RenderSettingsBestClientOthers(CUIRect MainView);
+	// found in components/bestclient/menus_invalid.cpp // bestclient
+	void RenderSettingsInvalid(CUIRect MainView);
+	void RenderSettingsInvalidVisuals(CUIRect MainView);
+	void RenderSettingsInvalidKog(CUIRect MainView);
+	void RenderSettingsInvalidChat(CUIRect MainView);
+	void RenderSettingsInvalidWeather(CUIRect MainView);
+	void RenderSettingsInvalidMisc(CUIRect MainView);
+	void SetInvalidSettingsTab(int Tab);
+	int GetInvalidSettingsTab() const;
 	// bestclient
 	void RenderSettingsBestClientFun(CUIRect MainView);
 	// bestclient
@@ -1162,7 +1172,7 @@ public:
 	int GetTClientSettingsTab() const;
 	void RenderSettingsNavNewStyle(CUIRect &TabBar);
 	void RenderSettingsPage(CUIRect MainView);
-	void RenderSettingsPageAt(CUIRect MainView, int SettingsPage, int TClientTab, int BestClientTab);
+	void RenderSettingsPageAt(CUIRect MainView, int SettingsPage, int TClientTab, int BestClientTab, int InvalidTab = 0);
 	void RenderSettingsContentNewStyle(CUIRect MainView);
 	void RenderSettingsContentLegacyStyle(CUIRect MainView);
 	// bestclient

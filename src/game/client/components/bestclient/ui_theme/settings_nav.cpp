@@ -32,6 +32,12 @@ static constexpr int BC_TAB_OTHERS = 2;
 static constexpr int BC_TAB_CONFIGS = 3;
 static constexpr int BC_TAB_INFO = 4;
 
+static constexpr int IV_TAB_VISUALS = 0;
+static constexpr int IV_TAB_KOG = 1;
+static constexpr int IV_TAB_CHAT = 2;
+static constexpr int IV_TAB_WEATHER = 3;
+static constexpr int IV_TAB_MISC = 4;
+
 static const int s_aDdnetLeaves[] = {
 	SETTINGS_NAV_LEAF_GENERAL,
 	SETTINGS_NAV_LEAF_TEE,
@@ -60,17 +66,25 @@ static const int s_aBestclientLeaves[] = {
 	SETTINGS_NAV_LEAF_BC_CONFIGS,
 	SETTINGS_NAV_LEAF_BC_INFO,
 };
+static const int s_aInvalidLeaves[] = {
+	SETTINGS_NAV_LEAF_INVALID_VISUALS,
+	SETTINGS_NAV_LEAF_INVALID_KOG,
+	SETTINGS_NAV_LEAF_INVALID_CHAT,
+	SETTINGS_NAV_LEAF_INVALID_WEATHER,
+	SETTINGS_NAV_LEAF_INVALID_MISC,
+};
 
 static int LeafVisualRank(int Leaf)
 {
-	const int *apLists[] = {s_aDdnetLeaves, s_aTclientLeaves, s_aBestclientLeaves};
+	const int *apLists[] = {s_aDdnetLeaves, s_aTclientLeaves, s_aBestclientLeaves, s_aInvalidLeaves};
 	const int aCounts[] = {
 		(int)(sizeof(s_aDdnetLeaves) / sizeof(s_aDdnetLeaves[0])),
 		(int)(sizeof(s_aTclientLeaves) / sizeof(s_aTclientLeaves[0])),
 		(int)(sizeof(s_aBestclientLeaves) / sizeof(s_aBestclientLeaves[0])),
+		(int)(sizeof(s_aInvalidLeaves) / sizeof(s_aInvalidLeaves[0])),
 	};
 	int Rank = 0;
-	for(int List = 0; List < 3; ++List)
+	for(int List = 0; List < 4; ++List)
 	{
 		for(int i = 0; i < aCounts[List]; ++i, ++Rank)
 		{
@@ -168,6 +182,26 @@ SSettingsLeafTarget LeafTarget(int Leaf)
 		Target.m_SettingsPage = CMenus::SETTINGS_BESTCLIENT;
 		Target.m_BestClientTab = BC_TAB_INFO;
 		break;
+	case SETTINGS_NAV_LEAF_INVALID_VISUALS:
+		Target.m_SettingsPage = CMenus::SETTINGS_INVALID;
+		Target.m_InvalidTab = IV_TAB_VISUALS;
+		break;
+	case SETTINGS_NAV_LEAF_INVALID_KOG:
+		Target.m_SettingsPage = CMenus::SETTINGS_INVALID;
+		Target.m_InvalidTab = IV_TAB_KOG;
+		break;
+	case SETTINGS_NAV_LEAF_INVALID_CHAT:
+		Target.m_SettingsPage = CMenus::SETTINGS_INVALID;
+		Target.m_InvalidTab = IV_TAB_CHAT;
+		break;
+	case SETTINGS_NAV_LEAF_INVALID_WEATHER:
+		Target.m_SettingsPage = CMenus::SETTINGS_INVALID;
+		Target.m_InvalidTab = IV_TAB_WEATHER;
+		break;
+	case SETTINGS_NAV_LEAF_INVALID_MISC:
+		Target.m_SettingsPage = CMenus::SETTINGS_INVALID;
+		Target.m_InvalidTab = IV_TAB_MISC;
+		break;
 	default:
 		Target.m_SettingsPage = CMenus::SETTINGS_GENERAL;
 		break;
@@ -181,6 +215,8 @@ int GroupForLeaf(int Leaf)
 		return SETTINGS_NAV_GROUP_TCLIENT;
 	if(Leaf >= SETTINGS_NAV_LEAF_BC_VISUALS && Leaf <= SETTINGS_NAV_LEAF_BC_INFO)
 		return SETTINGS_NAV_GROUP_BESTCLIENT;
+	if(Leaf >= SETTINGS_NAV_LEAF_INVALID_VISUALS && Leaf <= SETTINGS_NAV_LEAF_INVALID_MISC)
+		return SETTINGS_NAV_GROUP_INVALID;
 	return SETTINGS_NAV_GROUP_DDNET;
 }
 
@@ -201,7 +237,7 @@ bool IsLeafVisible(int Leaf, int TcTabFlags, int BcTabFlags)
 	return true;
 }
 
-int LeafFromState(int SettingsPage, int TClientTab, int BestClientTab)
+int LeafFromState(int SettingsPage, int TClientTab, int BestClientTab, int InvalidTab)
 {
 	switch(SettingsPage)
 	{
@@ -235,6 +271,15 @@ int LeafFromState(int SettingsPage, int TClientTab, int BestClientTab)
 		case BC_TAB_INFO: return SETTINGS_NAV_LEAF_BC_INFO;
 		default: return SETTINGS_NAV_LEAF_BC_VISUALS;
 		}
+	case CMenus::SETTINGS_INVALID:
+		switch(InvalidTab)
+		{
+		case IV_TAB_KOG: return SETTINGS_NAV_LEAF_INVALID_KOG;
+		case IV_TAB_CHAT: return SETTINGS_NAV_LEAF_INVALID_CHAT;
+		case IV_TAB_WEATHER: return SETTINGS_NAV_LEAF_INVALID_WEATHER;
+		case IV_TAB_MISC: return SETTINGS_NAV_LEAF_INVALID_MISC;
+		default: return SETTINGS_NAV_LEAF_INVALID_VISUALS;
+		}
 	default:
 		return SETTINGS_NAV_LEAF_GENERAL;
 	}
@@ -253,6 +298,8 @@ void ApplyLeaf(CMenus *pMenus, int Leaf)
 		pMenus->SetBestClientSettingsTab(Target.m_BestClientTab);
 		pMenus->CloseBestClientFun();
 	}
+	if(Target.m_SettingsPage == CMenus::SETTINGS_INVALID)
+		pMenus->SetInvalidSettingsTab(Target.m_InvalidTab);
 }
 
 BCUiAnimations::STabSwitch AnimateVerticalLeafSwitch(int SelectedLeaf, float DeltaTime)
@@ -350,7 +397,7 @@ void CMenus::RenderSettingsNavNewStyle(CUIRect &TabBar)
 	static CButtonContainer s_aGroupButtons[SETTINGS_NAV_GROUP_COUNT];
 	static CButtonContainer s_aLeafButtons[SETTINGS_NAV_LEAF_COUNT];
 
-	const int CurLeaf = LeafFromState(g_Config.m_UiSettingsPage, GetTClientSettingsTab(), GetBestClientSettingsTab());
+	const int CurLeaf = LeafFromState(g_Config.m_UiSettingsPage, GetTClientSettingsTab(), GetBestClientSettingsTab(), GetInvalidSettingsTab());
 	const int CurGroup = GroupForLeaf(CurLeaf);
 	if(!s_PhasesInit)
 	{
@@ -373,11 +420,13 @@ void CMenus::RenderSettingsNavNewStyle(CUIRect &TabBar)
 	constexpr int DdnetLeafCount = (int)(sizeof(s_aDdnetLeaves) / sizeof(s_aDdnetLeaves[0]));
 	constexpr int TclientLeafCount = (int)(sizeof(s_aTclientLeaves) / sizeof(s_aTclientLeaves[0]));
 	constexpr int BestclientLeafCount = (int)(sizeof(s_aBestclientLeaves) / sizeof(s_aBestclientLeaves[0]));
+	constexpr int InvalidLeafCount = (int)(sizeof(s_aInvalidLeaves) / sizeof(s_aInvalidLeaves[0]));
 
 	const char *apGroupNames[SETTINGS_NAV_GROUP_COUNT] = {
 		Localize("DDNet"),
 		TCLocalize("TClient"),
 		Localize("BestClient"),
+		"Invalid",
 	};
 
 	auto LeafName = [&](int Leaf) -> const char * {
@@ -405,6 +454,11 @@ void CMenus::RenderSettingsNavNewStyle(CUIRect &TabBar)
 		case SETTINGS_NAV_LEAF_BC_OTHERS: return BcLocalize("Others");
 		case SETTINGS_NAV_LEAF_BC_CONFIGS: return BcLocalize("Configs");
 		case SETTINGS_NAV_LEAF_BC_INFO: return BcLocalize("Info");
+		case SETTINGS_NAV_LEAF_INVALID_VISUALS: return BcLocalize("Visuals");
+		case SETTINGS_NAV_LEAF_INVALID_KOG: return BcLocalize("Kog");
+		case SETTINGS_NAV_LEAF_INVALID_CHAT: return BcLocalize("Chat");
+		case SETTINGS_NAV_LEAF_INVALID_WEATHER: return BcLocalize("Weather");
+		case SETTINGS_NAV_LEAF_INVALID_MISC: return BcLocalize("Misc");
 		default: return "";
 		}
 	};
@@ -451,8 +505,10 @@ void CMenus::RenderSettingsNavNewStyle(CUIRect &TabBar)
 					CollectVisibleLeaves(s_aDdnetLeaves, DdnetLeafCount, aFirstLeaves, FirstCount);
 				else if(Group == SETTINGS_NAV_GROUP_TCLIENT)
 					CollectVisibleLeaves(s_aTclientLeaves, TclientLeafCount, aFirstLeaves, FirstCount);
-				else
+				else if(Group == SETTINGS_NAV_GROUP_BESTCLIENT)
 					CollectVisibleLeaves(s_aBestclientLeaves, BestclientLeafCount, aFirstLeaves, FirstCount);
+				else
+					CollectVisibleLeaves(s_aInvalidLeaves, InvalidLeafCount, aFirstLeaves, FirstCount);
 				if(FirstCount > 0 && GroupForLeaf(CurLeaf) != Group)
 					ApplyLeaf(this, aFirstLeaves[0]);
 			}
@@ -463,8 +519,10 @@ void CMenus::RenderSettingsNavNewStyle(CUIRect &TabBar)
 			CollectVisibleLeaves(s_aDdnetLeaves, DdnetLeafCount, aVisibleLeaves, VisibleCount);
 		else if(Group == SETTINGS_NAV_GROUP_TCLIENT)
 			CollectVisibleLeaves(s_aTclientLeaves, TclientLeafCount, aVisibleLeaves, VisibleCount);
-		else
+		else if(Group == SETTINGS_NAV_GROUP_BESTCLIENT)
 			CollectVisibleLeaves(s_aBestclientLeaves, BestclientLeafCount, aVisibleLeaves, VisibleCount);
+		else
+			CollectVisibleLeaves(s_aInvalidLeaves, InvalidLeafCount, aVisibleLeaves, VisibleCount);
 
 		const float TargetHeight = VisibleCount > 0 ? VisibleCount * (LeafH + LeafGap) : 0.0f;
 		const float RevealH = BCUiAnimations::ModuleReveal(s_aGroupPhase[Group], Expanded, TargetHeight, Dt);
@@ -505,18 +563,21 @@ void CMenus::RenderSettingsNavNewStyle(CUIRect &TabBar)
 	}
 }
 
-void CMenus::RenderSettingsPageAt(CUIRect MainView, int SettingsPage, int TClientTab, int BestClientTab)
+void CMenus::RenderSettingsPageAt(CUIRect MainView, int SettingsPage, int TClientTab, int BestClientTab, int InvalidTab)
 {
 	const int OldPage = g_Config.m_UiSettingsPage;
 	const int OldTc = GetTClientSettingsTab();
 	const int OldBc = GetBestClientSettingsTab();
+	const int OldIv = GetInvalidSettingsTab();
 	g_Config.m_UiSettingsPage = SettingsPage;
 	SetTClientSettingsTab(TClientTab);
 	SetBestClientSettingsTab(BestClientTab);
+	SetInvalidSettingsTab(InvalidTab);
 	RenderSettingsPage(MainView);
 	g_Config.m_UiSettingsPage = OldPage;
 	SetTClientSettingsTab(OldTc);
 	SetBestClientSettingsTab(OldBc);
+	SetInvalidSettingsTab(OldIv);
 }
 
 void CMenus::RenderSettingsPage(CUIRect MainView)
@@ -574,6 +635,11 @@ void CMenus::RenderSettingsPage(CUIRect MainView)
 		GameClient()->m_MenuBackground.ChangePosition(CMenuBackground::POS_SETTINGS_RESERVED0);
 		RenderSettingsBestClient(MainView);
 	}
+	else if(g_Config.m_UiSettingsPage == SETTINGS_INVALID)
+	{
+		GameClient()->m_MenuBackground.ChangePosition(CMenuBackground::POS_SETTINGS_RESERVED0);
+		RenderSettingsInvalid(MainView);
+	}
 	else if(g_Config.m_UiSettingsPage == SETTINGS_PROFILES)
 	{
 		GameClient()->m_MenuBackground.ChangePosition(CMenuBackground::POS_SETTINGS_GENERAL);
@@ -599,7 +665,7 @@ void CMenus::RenderSettingsContentNewStyle(CUIRect MainView)
 {
 	using namespace BestClientUiTheme;
 
-	const int CurLeaf = LeafFromState(g_Config.m_UiSettingsPage, GetTClientSettingsTab(), GetBestClientSettingsTab());
+	const int CurLeaf = LeafFromState(g_Config.m_UiSettingsPage, GetTClientSettingsTab(), GetBestClientSettingsTab(), GetInvalidSettingsTab());
 	const BCUiAnimations::STabSwitch Anim = AnimateVerticalLeafSwitch(CurLeaf, Client()->RenderFrameTime());
 	const SSettingsLeafTarget From = LeafTarget(Anim.m_FromIndex);
 	const SSettingsLeafTarget To = LeafTarget(Anim.m_ToIndex);
@@ -622,7 +688,7 @@ void CMenus::RenderSettingsContentNewStyle(CUIRect MainView)
 	ClipRect.y -= 20.0f;
 	ClipRect.h += 20.0f;
 	Ui()->ClipEnable(&ClipRect);
-	RenderSettingsPageAt(ToView, To.m_SettingsPage, To.m_TClientTab, To.m_BestClientTab);
+	RenderSettingsPageAt(ToView, To.m_SettingsPage, To.m_TClientTab, To.m_BestClientTab, To.m_InvalidTab);
 	Ui()->ClipDisable();
 }
 
@@ -687,6 +753,6 @@ void CMenus::RenderSettingsContentLegacyStyle(CUIRect MainView)
 	ClipRect.y -= 20.0f;
 	ClipRect.h += 20.0f;
 	Ui()->ClipEnable(&ClipRect);
-	RenderSettingsPageAt(ToView, s_PageAnim.m_ToPage, GetTClientSettingsTab(), GetBestClientSettingsTab());
+	RenderSettingsPageAt(ToView, s_PageAnim.m_ToPage, GetTClientSettingsTab(), GetBestClientSettingsTab(), GetInvalidSettingsTab());
 	Ui()->ClipDisable();
 }

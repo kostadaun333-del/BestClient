@@ -208,6 +208,7 @@ void CGameClient::OnConsoleInit()
 					      &m_VoiceChat, // bestclient
 					      &m_Hud,
 					      &m_BestClient, // bestclient
+					      &m_InvalidClient, // bestclient
 					      &m_BcConfigPresets, // bestclient
 					      &m_Translate, // bestclient
 					      // bestclient
@@ -6140,6 +6141,8 @@ const char *CGameClient::GetComponentName(const CComponent *pComp) const
 		return "Hud";
 	if(pComp == &m_BestClient)
 		return "BestClient";
+	if(pComp == &m_InvalidClient)
+		return "InvalidClient";
 	if(pComp == &m_BcConfigPresets)
 		return "BcConfigPresets";
 	if(pComp == &m_Translate)

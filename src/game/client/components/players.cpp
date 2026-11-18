@@ -1163,7 +1163,17 @@ void CPlayers::RenderPlayer(
 		RenderTools()->RenderTee(&State, &RenderInfo, Player.m_Emote, Direction, ShadowPosition, g_Config.m_ClUnpredictedShadowAlpha / 100.f, Local, JellyDeform.m_BodyScale, JellyDeform.m_FeetScale, JellyDeform.m_BodyAngle, JellyDeform.m_FeetAngle); // bestclient
 	}
 
+	// bestclient: Invalid cosmetics
+	float InvalidAnimScale = 0.0f, InvalidBaseSize = 1.0f;
+	CRenderTools::GetRenderTeeAnimScaleAndBaseSize(&RenderInfo, InvalidAnimScale, InvalidBaseSize);
+	GameClient()->m_InvalidClient.RenderWings(Position, Direction, Alpha, InvalidBaseSize, ClientId);
+	// bestclient
+
 	RenderTools()->RenderTee(&State, &RenderInfo, Player.m_Emote, Direction, Position, Alpha, Local, JellyDeform.m_BodyScale, JellyDeform.m_FeetScale, JellyDeform.m_BodyAngle, JellyDeform.m_FeetAngle); // bestclient
+
+	// bestclient: Invalid cosmetics
+	GameClient()->m_InvalidClient.RenderAccessories(Position, Direction, Alpha, InvalidBaseSize, ClientId, Player.m_Emote);
+	// bestclient
 
 	// bestclient
 	if(ClientId >= 0 && Client()->State() == IClient::STATE_DEMOPLAYBACK && ClientId == GameClient()->m_DemoTeeEditor.SelectedClientId() &&

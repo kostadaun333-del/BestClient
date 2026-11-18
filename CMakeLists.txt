@@ -2905,6 +2905,8 @@ if(CLIENT)
     components/background.h
     components/bestclient/bestclient.cpp
     components/bestclient/bestclient.h
+    components/bestclient/invalid_client.cpp
+    components/bestclient/invalid_client.h
     components/bestclient/config_presets.cpp
     components/bestclient/config_presets.h
     components/bestclient/profile_assets.cpp
@@ -2951,6 +2953,7 @@ if(CLIENT)
     components/bestclient/server_map_preview.h
     components/bestclient/menus_assets_editor.cpp
     components/bestclient/menus_bestclient.cpp
+    components/bestclient/menus_invalid.cpp
     components/bestclient/menus_games.cpp
     components/bestclient/keybind_map.cpp
     components/bestclient/keybind_map.h

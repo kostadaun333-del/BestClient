@@ -54,7 +54,7 @@ static std::vector<int> gs_vFiltered;
 
 static const char *CatalogText(const SEntry &Entry, const char *pText)
 {
-	if(pText && GroupForLeaf(Entry.m_Leaf) == SETTINGS_NAV_GROUP_BESTCLIENT)
+	if(pText && (GroupForLeaf(Entry.m_Leaf) == SETTINGS_NAV_GROUP_BESTCLIENT || GroupForLeaf(Entry.m_Leaf) == SETTINGS_NAV_GROUP_INVALID))
 		return BcLocalize(pText);
 	return Localize(pText);
 }
@@ -76,6 +76,11 @@ static const char *LeafLabel(int Leaf)
 	case SETTINGS_NAV_LEAF_BC_OTHERS: return BcLocalize("Others");
 	case SETTINGS_NAV_LEAF_BC_CONFIGS: return BcLocalize("Configs");
 	case SETTINGS_NAV_LEAF_BC_INFO: return BcLocalize("Info");
+	case SETTINGS_NAV_LEAF_INVALID_VISUALS: return BcLocalize("Visuals");
+	case SETTINGS_NAV_LEAF_INVALID_KOG: return BcLocalize("Kog");
+	case SETTINGS_NAV_LEAF_INVALID_CHAT: return BcLocalize("Chat");
+	case SETTINGS_NAV_LEAF_INVALID_WEATHER: return BcLocalize("Weather");
+	case SETTINGS_NAV_LEAF_INVALID_MISC: return BcLocalize("Misc");
 	default: return Localize("Settings");
 	}
 }
@@ -84,6 +89,8 @@ static const char *GroupLabel(int Leaf)
 {
 	if(GroupForLeaf(Leaf) == SETTINGS_NAV_GROUP_TCLIENT)
 		return TCLocalize("TClient");
+	if(GroupForLeaf(Leaf) == SETTINGS_NAV_GROUP_INVALID)
+		return "Invalid";
 	return Localize("BestClient");
 }
 

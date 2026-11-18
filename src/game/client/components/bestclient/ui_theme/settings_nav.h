@@ -16,6 +16,7 @@ enum ESettingsNavGroup
 	SETTINGS_NAV_GROUP_DDNET = 0,
 	SETTINGS_NAV_GROUP_TCLIENT,
 	SETTINGS_NAV_GROUP_BESTCLIENT,
+	SETTINGS_NAV_GROUP_INVALID,
 	SETTINGS_NAV_GROUP_COUNT,
 };
 
@@ -43,6 +44,11 @@ enum ESettingsNavLeaf
 	SETTINGS_NAV_LEAF_BC_OTHERS,
 	SETTINGS_NAV_LEAF_BC_CONFIGS,
 	SETTINGS_NAV_LEAF_BC_INFO,
+	SETTINGS_NAV_LEAF_INVALID_VISUALS,
+	SETTINGS_NAV_LEAF_INVALID_KOG,
+	SETTINGS_NAV_LEAF_INVALID_CHAT,
+	SETTINGS_NAV_LEAF_INVALID_WEATHER,
+	SETTINGS_NAV_LEAF_INVALID_MISC,
 	SETTINGS_NAV_LEAF_COUNT,
 };
 
@@ -51,10 +57,11 @@ struct SSettingsLeafTarget
 	int m_SettingsPage = 0;
 	int m_TClientTab = 0;
 	int m_BestClientTab = 0;
+	int m_InvalidTab = 0;
 };
 
 SSettingsLeafTarget LeafTarget(int Leaf);
-int LeafFromState(int SettingsPage, int TClientTab, int BestClientTab);
+int LeafFromState(int SettingsPage, int TClientTab, int BestClientTab, int InvalidTab = 0);
 int GroupForLeaf(int Leaf);
 bool IsLeafVisible(int Leaf, int TcTabFlags, int BcTabFlags);
 
