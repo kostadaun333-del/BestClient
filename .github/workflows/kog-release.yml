@@ -1,0 +1,71 @@
+name: KOG helper — release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: windows-x64
+            os: windows-latest
+            cmake-args: -A x64 -DTOOLS=OFF -DSERVER=OFF -DDOWNLOAD_GTEST=OFF -DGTEST_FOUND=OFF -DVULKAN=OFF
+            package-file: '*-win64.zip'
+            asset-name: BestClient-KOG-win64.zip
+          - name: linux-x64
+            os: ubuntu-24.04
+            cmake-args: -G Ninja -DCMAKE_BUILD_TYPE=Release -DPREFER_BUNDLED_LIBS=ON -DDISCORD=OFF -DWEBSOCKETS=OFF -DAUTOUPDATE=OFF -DSERVER=OFF -DDOWNLOAD_GTEST=OFF -DGTEST_FOUND=OFF -DVULKAN=OFF
+            package-file: '*-linux_x86_64.tar.xz'
+            asset-name: BestClient-KOG-linux_x86_64.tar.xz
+
+    steps:
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Prepare Linux
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y cmake ninja-build pkg-config \
+            libfreetype6-dev libglew-dev libnotify-dev libpng-dev \
+            libsdl2-dev libsqlite3-dev libavcodec-dev libavformat-dev \
+            libavutil-dev libswresample-dev libswscale-dev libx264-dev
+
+      - name: Build release
+        shell: bash
+        run: |
+          mkdir -p release
+          cd release
+          cmake ${{ matrix.cmake-args }} -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE=. ..
+          cmake --build . --config Release --target game-client
+          cmake --build . --config Release --target package_default
+          mkdir -p artifacts
+          cp ${{ matrix.package-file }} artifacts/${{ matrix.asset-name }}
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/artifacts/${{ matrix.asset-name }}
+          generate_release_notes: true
+
+      - name: Upload artifacts (manual runs)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: kog-${{ matrix.name }}
+          path: release/artifacts/${{ matrix.asset-name }}
+          if-no-files-found: error
