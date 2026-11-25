@@ -499,13 +499,30 @@ function(set_glob VAR GLOBBING EXTS DIRECTORY) # ...
     list(APPEND FILES "${PROJECT_SOURCE_DIR}/${DIRECTORY}/${file}")
   endforeach()
 
- 	if(NOT FILES STREQUAL GLOB_RESULT)
-		# Отключаем проверку отсутствующих файлов, чтобы сборка не падала
-		# message(AUTHOR_WARNING "${VAR} does not contain every file from directory ${DIRECTORY}")
-		# message(AUTHOR_WARNING "Entries only present in ${VAR}: ${LIST_BUT_NOT_GLOB}")
-		# message(AUTHOR_WARNING "Entries only present in ${DIRECTORY}: ${GLOB_BUT_NOT_LIST}")
-		# message(AUTHOR_WARNING "${VAR} is not alphabetically sorted")
-	endif()
+  if(NOT FILES STREQUAL GLOB_RESULT)
+    message(AUTHOR_WARNING "${VAR} does not contain every file from directory ${DIRECTORY}")
+    set(LIST_BUT_NOT_GLOB)
+    foreach(file ${FILES})
+      if(NOT file IN_LIST GLOB_RESULT)
+        list(APPEND LIST_BUT_NOT_GLOB ${file})
+      endif()
+    endforeach()
+    if(LIST_BUT_NOT_GLOB)
+      message(AUTHOR_WARNING "Entries only present in ${VAR}: ${LIST_BUT_NOT_GLOB}")
+    endif()
+    set(GLOB_BUT_NOT_LIST)
+    foreach(file ${GLOB_RESULT})
+      if(NOT file IN_LIST FILES)
+        list(APPEND GLOB_BUT_NOT_LIST ${file})
+      endif()
+    endforeach()
+    if(GLOB_BUT_NOT_LIST)
+      message(AUTHOR_WARNING "Entries only present in ${DIRECTORY}: ${GLOB_BUT_NOT_LIST}")
+    endif()
+    if(NOT LIST_BUT_NOT_GLOB AND NOT GLOB_BUT_NOT_LIST)
+      message(AUTHOR_WARNING "${VAR} is not alphabetically sorted")
+    endif()
+  endif()
 
   set(${VAR} ${FILES} PARENT_SCOPE)
 endfunction()
@@ -2892,16 +2909,18 @@ if(CLIENT)
     components/bestclient/config_presets.h
     components/bestclient/profile_assets.cpp
     components/bestclient/profile_assets.h
+    components/bestclient/profiler.cpp
+    components/bestclient/profiler.h
     components/bestclient/admin_panel.cpp
     components/bestclient/admin_panel.h
-    components/bestclient/anticheat.cpp
-    components/bestclient/anticheat.h
     components/bestclient/aspect_ratio.cpp
     components/bestclient/aspect_ratio.h
     components/bestclient/gradient.cpp
     components/bestclient/gradient.h
     components/bestclient/jelly_tee.cpp
     components/bestclient/jelly_tee.h
+    components/bestclient/kog_helper.cpp
+    components/bestclient/kog_helper.h
     components/bestclient/flying_name_plates.cpp
     components/bestclient/flying_name_plates.h
     components/bestclient/3d_particles.cpp
@@ -3069,6 +3088,8 @@ if(CLIENT)
     components/bestclient/subsystem_runtime.h
     components/bestclient/updater.cpp
     components/bestclient/updater.h
+    components/bestclient/changelog.cpp
+    components/bestclient/changelog.h
     components/bestclient/version.h
     components/bestclient/visualizer/analyzer.cpp
     components/bestclient/visualizer/analyzer.h
@@ -3513,6 +3534,9 @@ if(CLIENT)
       PROPERTY OUTPUT_NAME ${CLIENT_EXECUTABLE}
   )
   target_link_libraries(game-client ${LIBS_CLIENT})
+  if(WIN32)
+    target_link_libraries(game-client psapi)
+  endif()
 
   if(TARGET_OS STREQUAL "ios")
     set(IOS_INFO_PLIST "${PROJECT_BINARY_DIR}/ios-Info.plist")
