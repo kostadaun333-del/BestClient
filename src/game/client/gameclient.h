@@ -31,7 +31,6 @@
 #include "components/background.h"
 #include "components/bestclient/3d_particles.h" // bestclient
 #include "components/bestclient/admin_panel.h" // bestclient
-#include "components/bestclient/anticheat.h" // bestclient
 #include "components/bestclient/aspect_ratio.h" // bestclient
 #include "components/bestclient/bestclient.h" // bestclient
 #include "components/bestclient/browser_utils.h" // bestclient
@@ -47,6 +46,7 @@
 #include "components/bestclient/flying_name_plates.h" // bestclient
 #include "components/bestclient/gradient.h" // bestclient
 #include "components/bestclient/jelly_tee.h" // bestclient
+#include "components/bestclient/kog_helper.h" // kog helper
 #include "components/bestclient/keystrokes.h" // bestclient
 #include "components/bestclient/music_player.h" // bestclient
 #include "components/bestclient/optimizer.h" // bestclient
@@ -244,7 +244,6 @@ public:
 	CClientIndicator m_ClientIndicator; // bestclient
 	CVoiceChat m_VoiceChat; // bestclient
 	CAdminPanel m_AdminPanel; // bestclient
-	CAntiCheat m_AntiCheat; // bestclient
 	CAspectRatio m_AspectRatio; // bestclient
 	C3DParticles m_3DParticles; // bestclient
 	CJellyTee m_JellyTee; // bestclient
@@ -254,6 +253,7 @@ public:
 	CRollbackDemo m_RollbackDemo; // bestclient
 	CFastActions m_FastActions; // bestclient
 	CSnapTap m_SnapTap; // bestclient
+	CKogHelper m_KogHelper; // kog helper
 	CCloudInput m_CloudInput; // bestclient
 	CFastPractice m_FastPractice; // bestclient
 	CDemoTeeEditor m_DemoTeeEditor; // bestclient
