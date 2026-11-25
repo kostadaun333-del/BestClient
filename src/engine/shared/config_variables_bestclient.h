@@ -625,6 +625,16 @@ MACRO_CONFIG_INT(BcWeatherDustSpeed, bc_weather_dust_speed, 100, 25, 300, CFGFLA
 
 // KeybindMap
 MACRO_CONFIG_INT(BcKeybindMapFormat, bc_keybind_map_format, 2, 0, 2, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Last keybind map format (0=100%, 1=86%, 2=60%)")
-// Anti-Cheat
-MACRO_CONFIG_INT(BcAntiCheat, bc_anticheat, 1, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Enable BestClient anti-cheat analysis")
-MACRO_CONFIG_INT(BcAntiCheatShowHud, bc_anticheat_show_hud, 1, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Show BestClient anti-cheat HUD")
+
+// Profiler
+MACRO_CONFIG_INT(BcProfiler, bc_profiler, 0, 0, 1, CFGFLAG_CLIENT, "Show the BestClient profiler overlay")
+
+// KOG helper: trajectory preview + opt-in movement correction on a trusted (private) server
+MACRO_CONFIG_INT(BcKogPreset, bc_kog_preset, 0, 0, 2, CFGFLAG_CLIENT | CFGFLAG_SAVE, "KOG avoid preset: 0 = Basic, 1 = Legit, 2 = Rage")
+MACRO_CONFIG_INT(BcKogMarker, bc_kog_marker, 1, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Show the predicted trajectory with the freeze segment marked red")
+MACRO_CONFIG_INT(BcKogInput, bc_kog_input, 0, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Allow movement correction (requires an explicitly configured trusted server)")
+MACRO_CONFIG_STR(BcKogServer, bc_kog_server, 96, "", CFGFLAG_CLIENT | CFGFLAG_SAVE | CFGFLAG_INSENSITIVE, "Address substring of your own private server where correction is allowed")
+MACRO_CONFIG_INT(BcKogHorizon, bc_kog_horizon, 28, 10, 48, CFGFLAG_CLIENT | CFGFLAG_SAVE, "How many ticks of physics to predict ahead")
+MACRO_CONFIG_INT(BcKogSafety, bc_kog_safety, 2, 0, 10, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Minimum improvement before correcting movement (higher = more legit)")
+MACRO_CONFIG_INT(BcKogCooldown, bc_kog_cooldown, 2, 0, 20, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Ticks between corrections in Basic/Legit modes")
+MACRO_CONFIG_INT(BcKogEffects, bc_kog_effects, 0, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Enable the full KOG visual effects bundle at once")
