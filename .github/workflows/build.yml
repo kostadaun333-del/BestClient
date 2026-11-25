@@ -62,6 +62,9 @@ jobs:
       with:
         submodules: recursive
 
+    - name: KOG helper build marker
+      run: echo "Building BestClient with KOG helper"
+
     - name: Prepare Linux
       if: contains(matrix.os, 'ubuntu')
       run: |
